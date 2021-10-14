@@ -1,49 +1,61 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 # Script for moving the most recent file(s) or director(y/ies) in ~/Downloads to a
 # specified directory.
-
-# Note that if you use any torrenting software then you will need to point it to a
-# different directory as those files will always have the latest mtimes.
 
 # This would be a lot easier in a different scripting language since we effectively
 # want to parse ls -t but I have implemented it anyway for portability.
 # See https://mywiki.wooledge.org/BashFAQ/099
 
-# TODO:
-# Check when to use [ and [[. https://mywiki.wooledge.org/BashFAQ/031
-# Check if it can be sh instead of bash.
-# Check which things exactly need quoting. newest=$f
+# We need [[ instead of [ for the use of -nt so this requires Bash.
+
+# Note the use of mv --backup=numbered at the end.
+
+# Note that if you use any torrenting software then you will need to point it to a
+# different output directory as those files will always have the latest mtimes.
 
 
-if [ -z "$1" ]; then
-    echo "First argument must be the output directory."
-    echo "Use -d for directories; otherwise files will be moved."
-    echo "Use -n to specify the number of files/directories to move. Default is 1."
-    echo "For example: moveLatestDownload.sh . -n 3"
+num_files=1
+directory=false
+
+while :; do
+    case $1 in
+	-h|--help)
+	    printf 'Use -d for directories; otherwise files will be moved.\n'
+	    printf 'Use -n to specify the number of files/directories to move. Default is 1.\n'
+	    printf 'First positional argument must be the output directory.\n'
+	    exit
+	    ;;
+	-d)
+	    directory=true
+	    ;;
+	-n)
+	    num_files=$2
+	    shift
+	    ;;
+	-?*)
+	    printf 'ERROR: Unknown option: %s\n' "$1"
+	    exit 1
+            ;;
+	*)
+	    break
+    esac
+
+    shift
+done
+
+if [[ -z "$1" ]]; then
+    printf 'ERROR: Must provide the output directory\n'
     exit 1
 fi
 
 outdir=$1
 shift 1
 
-NUMFILES=1
-directory=false
-
-while getopts "dn:" option
-do
-    case "${option}"
-    in
-      d) directory=true;;
-      n) NUMFILES=${OPTARG};;
-      *) echo "Invalid option" && exit 1;;
-   esac
-done
-
-for ((i = 1; i <= $NUMFILES; i++)); do
+for ((i = 1; i <= $num_files; i++)); do
     
     # Find newest file/directory and move it.
-
+    
     all_downloads=(~/Downloads/*)
     any_present=false
     
@@ -51,12 +63,12 @@ for ((i = 1; i <= $NUMFILES; i++)); do
 	
 	if ! $any_present ; then
 	    if $directory ; then
-		if [ -d "$f" ]; then
+		if [[ -d "$f" ]]; then
 		    newest=$f
 		    any_present=true
 		fi
 	    else
-		if [ -f "$f" ]; then
+		if [[ -f "$f" ]]; then
 		    newest=$f
 		    any_present=true
 		fi
@@ -64,13 +76,13 @@ for ((i = 1; i <= $NUMFILES; i++)); do
 	fi
 	
 	if $directory ; then
-	    if [ -d "$f" ]; then
+	    if [[ -d "$f" ]]; then
 		if [[ $f -nt $newest ]]; then
 		    newest=$f
 		fi
 	    fi
 	else
-	    if [ -f "$f" ]; then
+	    if [[ -f "$f" ]]; then
 		if [[ $f -nt $newest ]]; then
 		    newest=$f
 		fi
@@ -80,7 +92,7 @@ for ((i = 1; i <= $NUMFILES; i++)); do
     done
     
     if $any_present ; then
-	mv "$newest" $outdir
+	mv --backup=numbered "$newest" "$outdir"
     fi
     
 done
