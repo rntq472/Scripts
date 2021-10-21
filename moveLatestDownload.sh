@@ -7,8 +7,6 @@
 # want to parse ls -t but I have implemented it anyway for portability.
 # See https://mywiki.wooledge.org/BashFAQ/099
 
-# We need [[ instead of [ for the use of -nt so this requires Bash.
-
 # Note the use of mv --backup=numbered at the end.
 
 # Note that if you use any torrenting software then you will need to point it to a
@@ -34,18 +32,18 @@ while :; do
 	    shift
 	    ;;
 	-?*)
-	    printf 'ERROR: Unknown option: %s\n' "$1"
+	    printf 'ERROR: Unknown option: %s\n' "$1" 1>&2
 	    exit 1
             ;;
 	*)
 	    break
     esac
-
+    
     shift
 done
 
 if [[ -z "$1" ]]; then
-    printf 'ERROR: Must provide the output directory\n'
+    printf 'ERROR: Must provide the output directory\n' 1>&2
     exit 1
 fi
 
