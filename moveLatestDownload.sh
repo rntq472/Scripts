@@ -1,16 +1,24 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 # Script for moving the most recent file(s) or director(y/ies) in ~/Downloads to a
-# specified directory.
+# specified directory. I use this when I download something through my browser and
+# immediately want to store it somewhere via the command line without checking the
+# exact file name.
+
+# Examples:
+# moveLatestDownload .
+# moveLatestDownload ~/Foo/Bar/
+# moveLatestDownload -n 3 ~/Pictures/Cats/
+# moveLatestDownload -d ~/Foo/Bar/new_directory_name
 
 # This would be a lot easier in a different scripting language since we effectively
 # want to parse ls -t but I have implemented it anyway for portability.
 # See https://mywiki.wooledge.org/BashFAQ/099
 
-# Note the use of mv --backup=numbered at the end.
+# Note the use of mv --backup=numbered at the end to avoid clobbering.
 
-# Note that if you use any torrenting software then you will need to point it to a
-# different output directory as those files will always have the latest mtimes.
+# Also note that if you use any torrenting software then you will need to point it
+# to a different output directory as those files will always have the latest mtimes.
 
 
 num_files=1
